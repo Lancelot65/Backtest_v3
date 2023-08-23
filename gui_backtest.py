@@ -1,4 +1,4 @@
-from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox, Checkbutton, IntVar
+from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox, Checkbutton, IntVar, 
 import sys
 from ccxt import binance
 sys.path.append('../trad/Ohlcvplus')
@@ -24,6 +24,10 @@ class gui(Tk):
         self.frame_reglage = Frame(self)
         self.frame_reglage.grid(row=0, column=0)
         self.reglage_simple(self.frame_reglage)
+
+        self.values = IntVar()
+        Checkbutton(self, text='more option', command=self.plus_option, onvalue=1, offvalue=0, font=("Times 9"), variable=self.values).grid(row=1, column=0, sticky='SW', padx=5, pady=5)
+        self.existe = False
                 
 
         self.mainloop()
@@ -110,4 +114,12 @@ class gui(Tk):
         self.charger_data()
         self.charger_graphique()
     
+    def plus_option(self):
+        if self.values.get() == 1:
+            self.text = Label(self, text='text')
+            self.text.grid(row=2, column=0)
+            self.existe = True
+        if self.values.get() == 0:
+            self.text.destroy()
+            self.existe = False
 gui()
