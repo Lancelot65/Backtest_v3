@@ -1,4 +1,4 @@
-from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox
+from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox, Checkbutton, IntVar
 import sys
 from ccxt import binance
 sys.path.append('../trad/Ohlcvplus')
@@ -16,7 +16,7 @@ class gui(Tk):
         self.color = StringVar(value='lavender')
 
         self.option_add('*Font', 'Times 10')
-        self.configure(bg=self.color.get())
+        #self.configure(bg=self.color.get())
         self.resizable(False, False)
         self.title('backtest')
         self.iconphoto(True, PhotoImage(file='logo.png'))
@@ -24,7 +24,7 @@ class gui(Tk):
         self.frame_reglage = Frame(self)
         self.frame_reglage.grid(row=0, column=0)
         self.reglage_simple(self.frame_reglage)
-        
+                
 
         self.mainloop()
     
@@ -89,7 +89,10 @@ class gui(Tk):
 
         fig = Figure(figsize=(6, 4), dpi=100)
         self.ax = fig.add_subplot(111)
-        candlestick_ohlc(self.ax, self.data.values, colorup='g', colordown='r', width=0.0000002, alpha=0.9)
+        if self.type_graphique.get() == 'bougie':
+            candlestick_ohlc(self.ax, self.data.values, colorup='g', colordown='r', width=0.0000002, alpha=0.9)
+        else:
+            self.ax.plot(self.data.timestamp, self.data.close)
 
         canvas = FigureCanvasTkAgg(fig, master=self.graphique)
         canvas_widget = canvas.get_tk_widget()
@@ -102,8 +105,9 @@ class gui(Tk):
 
         ohlcvp = OhlcvPlus(binance())
         self.data = ohlcvp.load(market=self.exchange.get(), timeframe=self.timeframe.get(), since=date_debut, limit=date_fin, update=True, verbose=True, workers=100)
-        print(len(self.data))
 
     def boutton_charger_press(self):
         self.charger_data()
         self.charger_graphique()
+    
+gui()
