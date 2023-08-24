@@ -1,4 +1,4 @@
-from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox, Checkbutton, IntVar, 
+from tkinter import Tk, PhotoImage, Frame, Label, Button, ttk, StringVar, Toplevel, Spinbox, Checkbutton, IntVar, Entry, messagebox
 import sys
 from ccxt import binance
 sys.path.append('../trad/Ohlcvplus')
@@ -8,12 +8,15 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
 
 class gui(Tk):
     def __init__(self):
         super().__init__()
 
         self.color = StringVar(value='lavender')
+
+        self.calcul_indicateur = []
 
         self.option_add('*Font', 'Times 10')
         #self.configure(bg=self.color.get())
@@ -25,10 +28,11 @@ class gui(Tk):
         self.frame_reglage.grid(row=0, column=0)
         self.reglage_simple(self.frame_reglage)
 
-        self.values = IntVar()
-        Checkbutton(self, text='more option', command=self.plus_option, onvalue=1, offvalue=0, font=("Times 9"), variable=self.values).grid(row=1, column=0, sticky='SW', padx=5, pady=5)
-        self.existe = False
-                
+        self.frame_ind = Frame(self)
+        self.frame_ind.grid(row=1, column=0)
+        self.plus_option(self.frame_ind)
+
+        Button(self, text='charger\ntableau', command=self.boutton_charger_press).grid(row=3, column=0, pady=5)
 
         self.mainloop()
     
@@ -86,10 +90,14 @@ class gui(Tk):
         Spinbox(frame2, textvariable=self.jour_fin, from_=1, to=31, width=2).grid(row=0, column=5)
         Label(frame2, text=' ',  width=1).grid(row=0, column=6)
 
-        Button(frame, text='charger\ntableau', command=self.boutton_charger_press).grid(row=4, column=1)
     
     def charger_graphique(self):
         self.graphique = Toplevel(self)
+
+        close = self.data.close
+        open = self.data.open
+        high = self.data.high
+        low = self.data.low
 
         fig = Figure(figsize=(6, 4), dpi=100)
         self.ax = fig.add_subplot(111)
@@ -101,6 +109,9 @@ class gui(Tk):
         canvas = FigureCanvasTkAgg(fig, master=self.graphique)
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.pack()
+
+        for ind in self.calcul_indicateur:
+            self.ax.plot(self.data.timestamp, eval(ind))
 
     def charger_data(self):
         date_debut = self.annee_debut.get() + '-' + self.mois_debut.get() + '-' + self.jour_debut.get() + ' 00:00:00'
@@ -114,12 +125,38 @@ class gui(Tk):
         self.charger_data()
         self.charger_graphique()
     
-    def plus_option(self):
-        if self.values.get() == 1:
-            self.text = Label(self, text='text')
-            self.text.grid(row=2, column=0)
-            self.existe = True
-        if self.values.get() == 0:
-            self.text.destroy()
-            self.existe = False
+    def plus_option(self, frame):
+        Label(frame, text='Reglage indicateurs', font=("Times 15")).grid(row=0, column=0, columnspan=2, ipady=10)
+        Label(frame, text='rentrer vos formules', font=("Times 10")).grid(row=1, column=0, padx=3, columnspan=2)
+        Label(frame, text='*vous avez accés a ces 5 variable :\nclose, open, low, high et volume',  font=("Times 8")).grid(row=3, column=0,  padx=3, sticky='w')
+
+        self.operation = StringVar()
+        Entry(frame, textvariable=self.operation).grid(row=2, column=0, sticky='w')
+
+        Button(frame, text='check', command=self.validate).grid(row=2, column=0, sticky='e', padx=5)
+        Button(frame, text='reinitialiser', command=self.reinitialiser).grid(row=2, column=1)
+    
+    def validate(self):
+
+        df = pd.DataFrame({'close' : [], 'open' : [], 'low' : [], 'high' : [], 'volume' : []})
+        close = df.close
+        open = df.open
+        high = df.high
+        low = df.low
+
+        
+        try:
+            eval(self.operation.get())
+            print('test_pas')
+            self.calcul_indicateur.append(self.operation.get())
+            self.operation.set('')
+        except:
+            print('error')
+            messagebox.showerror(title='error', message='error')
+
+
+    def reinitialiser(self):
+        self.calcul_indicateur = []
+
+        
 gui()
